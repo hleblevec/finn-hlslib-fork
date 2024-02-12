@@ -59,18 +59,21 @@
  * \param 	in 				Input stream
  * \param 	out 			Output stream
  */
-template<unsigned int OFMDim,
-	unsigned int IFMDim,
+template<unsigned int OFMDim_H,
+	unsigned int OFMDim_W,
+	unsigned int IFMDim_H,
+	unsigned int IFMDim_W,
 	unsigned int NumChannels,
 	typename In_t>
 void UpsampleNearestNeighbour(
         hls::stream<ap_uint<NumChannels * In_t::width>> & in,
         hls::stream<ap_uint<NumChannels * In_t::width>> & out
 ) {
-  static_assert(OFMDim > IFMDim, "");
+  static_assert((OFMDim_H > IFMDim_H)&&(OFMDim_W > IFMDim_W), "");
+  static_assert(OFMDim_H/IFMDim_H == OFMDim_W/IFMDim_W, "");
 
-  constexpr unsigned int scale_factor = OFMDim/IFMDim;
-  constexpr unsigned int Padding = OFMDim % IFMDim;
+  constexpr unsigned int scale_factor = OFMDim_H/IFMDim_H;
+  constexpr unsigned int Padding = OFMDim_H % IFMDim_H;
   // Padding might be asymmetrical
   constexpr unsigned int PaddingDown = Padding/2;
   constexpr unsigned int PaddingUp = Padding - PaddingDown;
@@ -79,13 +82,13 @@ void UpsampleNearestNeighbour(
   constexpr unsigned int PaddingLeft = Padding - PaddingRight;
 
   ap_uint<NumChannels * In_t::width> outData, inData;
-  ap_uint<NumChannels * In_t::width> RowBuf[IFMDim];
+  ap_uint<NumChannels * In_t::width> RowBuf[IFMDim_W];
   int count_row = -PaddingUp; // Counter used to understand whether reading (and buffering) a row or not - Made in order to avoid modulo operations
-  for (unsigned int y = 0; y < OFMDim; y++) {
-	  for (unsigned int x = 0; x < OFMDim; x++) {
+  for (unsigned int y = 0; y < OFMDim_H; y++) {
+	  for (unsigned int x = 0; x < OFMDim_W; x++) {
 #pragma HLS pipeline style=flp II=1
 		bool read_row = (y ==0) || count_row==scale_factor;
-		if ((x < IFMDim) && read_row)
+		if ((x < IFMDim_W) && read_row)
 		{
 			inData = in.read();
 			RowBuf[x] = inData;
@@ -94,12 +97,12 @@ void UpsampleNearestNeighbour(
 		if(x < PaddingLeft){
 			outData = RowBuf[0];
 		}
-		else if (x >= (OFMDim - PaddingRight)){
-			outData = RowBuf[IFMDim-1];
+		else if (x >= (OFMDim_W - PaddingRight)){
+			outData = RowBuf[IFMDim_W-1];
 
 		}
 		// Padding Rows
-		else if(y < PaddingUp || y >= (OFMDim - PaddingDown)){
+		else if(y < PaddingUp || y >= (OFMDim_H - PaddingDown)){
 			outData = RowBuf[(x-PaddingLeft)/scale_factor];
 		}
 		// No Padding
@@ -131,8 +134,10 @@ void UpsampleNearestNeighbour(
  * \param 	out 			Output stream
  * \param     numReps      Number of time the function has to be repeatedly executed (e.g. number of images)
  */
-template<unsigned int OFMDim,
-	unsigned int IFMDim,
+template<unsigned int OFMDim_H,
+	unsigned int OFMDim_W,
+	unsigned int IFMDim_H,
+	unsigned int IFMDim_W,
 	unsigned int NumChannels,
 	typename In_t>
 void UpsampleNearestNeighbour_Batch(
@@ -140,7 +145,7 @@ void UpsampleNearestNeighbour_Batch(
         hls::stream<ap_uint<NumChannels * In_t::width>> & out,
 		unsigned int numReps) {
   for (unsigned int rep = 0; rep < numReps; rep++) {
-	UpsampleNearestNeighbour<OFMDim, IFMDim, NumChannels, In_t>(in, out);
+	UpsampleNearestNeighbour<OFMDim_H, OFMDim_W, IFMDim_H, OFMDim_W, NumChannels, In_t>(in, out);
   }
 }
 

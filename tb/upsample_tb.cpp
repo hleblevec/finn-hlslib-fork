@@ -22,20 +22,20 @@ using namespace std;
 
 void Testbench_upsample(stream<ap_uint<PRECISION * FM_CHANNELS>> &in, stream<ap_uint<PRECISION * FM_CHANNELS>> &out);
 
-void Golden_upsample(ap_uint<PRECISION> in[IFMDIM][IFMDIM][FM_CHANNELS], ap_uint<PRECISION> out[OFMDIM][OFMDIM][FM_CHANNELS]);
+void Golden_upsample(ap_uint<PRECISION> in[IFMDIM_H][IFMDIM_W][FM_CHANNELS], ap_uint<PRECISION> out[OFMDIM_H][OFMDIM_W][FM_CHANNELS]);
 
 int main(){
-  static ap_uint<PRECISION> golden_in[IFMDIM][IFMDIM][FM_CHANNELS];
-  static ap_uint<PRECISION> golden_out[OFMDIM][OFMDIM][FM_CHANNELS];
+  static ap_uint<PRECISION> golden_in[IFMDIM_H][IFMDIM_W][FM_CHANNELS];
+  static ap_uint<PRECISION> golden_out[OFMDIM_H][OFMDIM_W][FM_CHANNELS];
 
   stream<ap_uint<PRECISION*FM_CHANNELS>> test_in("test_input");
   stream<ap_uint<PRECISION*FM_CHANNELS>> test_out("test_ouput");
 
-  for (int i = 0; i<IFMDIM; i++) {
-    for (int j = 0; j<IFMDIM; j++) {
+  for (int i = 0; i<IFMDIM_H; i++) {
+    for (int j = 0; j<IFMDIM_W; j++) {
       ap_uint<PRECISION*FM_CHANNELS> input_channel = 0;
       for (int k = 0; k<FM_CHANNELS; k++) {
-        ap_uint<PRECISION> input = i*IFMDIM + j;
+        ap_uint<PRECISION> input = i*IFMDIM_H + j;
         input_channel = input_channel << PRECISION;
         input_channel(PRECISION-1,0) = input;
         golden_in[i][j][k] = input;
@@ -51,8 +51,8 @@ int main(){
 
   ap_uint<PRECISION> out_channel;
   int err_counter = 0;
-  for (int i = 0; i<OFMDIM; i++) {
-    for (int j = 0; j<OFMDIM; j++) {
+  for (int i = 0; i<OFMDIM_H; i++) {
+    for (int j = 0; j<OFMDIM_W; j++) {
       ap_uint<PRECISION * FM_CHANNELS> out_elem = test_out.read();
       for (int k = 0; k<FM_CHANNELS; k++) {
         ap_uint<PRECISION> expect = golden_out[i][j][k];
@@ -72,11 +72,11 @@ int main(){
 
 
 
-void Golden_upsample(ap_uint<PRECISION> in[IFMDIM][IFMDIM][FM_CHANNELS], ap_uint<PRECISION> out[OFMDIM][OFMDIM][FM_CHANNELS]) {
-  const int scaling = OFMDIM / IFMDIM;
-  const int padding = OFMDIM % IFMDIM;
-  for (int i = 0; i<OFMDIM; i++) {
-    for (int j = 0; j<OFMDIM; j++) {
+void Golden_upsample(ap_uint<PRECISION> in[IFMDIM_H][IFMDIM_W][FM_CHANNELS], ap_uint<PRECISION> out[OFMDIM_H][OFMDIM_W][FM_CHANNELS]) {
+  const int scaling = OFMDIM_H / IFMDIM_H;
+  const int padding = OFMDIM_H % IFMDIM_H;
+  for (int i = 0; i<OFMDIM_H; i++) {
+    for (int j = 0; j<OFMDIM_W; j++) {
 
       int dst_i = i-padding;
       if (dst_i<0) dst_i = 0;

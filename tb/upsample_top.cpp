@@ -52,5 +52,5 @@ using namespace hls;
 
 
 void Testbench_upsample(stream<ap_uint<PRECISION * FM_CHANNELS>> &in, stream<ap_uint<PRECISION * FM_CHANNELS>> &out) {
-	UpsampleNearestNeighbour<OFMDIM, IFMDIM, FM_CHANNELS, ap_uint<PRECISION> >(in,out);
+	UpsampleNearestNeighbour<OFMDIM_H, OFMDIM_W, IFMDIM_H, IFMDIM_W, FM_CHANNELS, ap_uint<PRECISION> >(in,out);
 }
