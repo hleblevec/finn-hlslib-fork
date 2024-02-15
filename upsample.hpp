@@ -145,7 +145,7 @@ void UpsampleNearestNeighbour_Batch(
         hls::stream<ap_uint<NumChannels * In_t::width>> & out,
 		unsigned int numReps) {
   for (unsigned int rep = 0; rep < numReps; rep++) {
-	UpsampleNearestNeighbour<OFMDim_H, OFMDim_W, IFMDim_H, OFMDim_W, NumChannels, In_t>(in, out);
+	UpsampleNearestNeighbour<OFMDim_H, OFMDim_W, IFMDim_H, IFMDim_W, NumChannels, In_t>(in, out);
   }
 }
 
