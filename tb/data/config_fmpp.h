@@ -1,5 +1,5 @@
 /******************************************************************************
- *  Copyright (c) 2022, Xilinx, Inc.
+ *  Copyright (c) 2023, Advanced Micro Devices, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,20 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *******************************************************************************
- * @brief	Top-level for MaxNorm layer test.
- * @author	Thomas B. Preusser <thomas.preusser@amd.com>
- *******************************************************************************/
-#include "normalize.hpp"
-#include "max_norm_top.hpp"
+ ******************************************************************************/
 
+#ifndef FMPP_CONFIG_H
+#define FMPP_CONFIG_H
 
-void max_norm_top(
-	hls::stream<ap_uint<WI>>  &src,
-	hls::stream<ap_uint<WO>> (&dst)[2]
-) {
-#pragma HLS interface AXIS port=src
-#pragma HLS interface AXIS port=dst[0]
-#pragma HLS interface AXIS port=dst[1]
-#pragma HLS dataflow disable_start_propagation
-	hls::stream<ap_uint<WI>>  split[2];
-	for(unsigned  i = 0; i < FM_SIZE; i++) {
-		auto const  x = src.read();
-		split[0].write(x);
-		split[1].write(x);
-	}
-	max_norm<FM_SIZE>(split[0], dst[0], SCALE0);
-	max_norm<FM_SIZE>(split[1], dst[1], SCALE1);
-}
+constexpr unsigned  SIMD1 = 1;
+constexpr unsigned  INPUT_WIDTH = 8;
+constexpr unsigned  INPUT_DIM_X = 30;
+constexpr unsigned  INPUT_DIM_Y = 40;
+constexpr unsigned  CHANNELS = 3;
+constexpr unsigned  XSTRIDE = 5;
+constexpr unsigned  YSTRIDE = 3;
+
+constexpr unsigned  OUTPUT_DIM_X = INPUT_DIM_X + (INPUT_DIM_X - 1) * (XSTRIDE - 1);
+constexpr unsigned  OUTPUT_DIM_Y = INPUT_DIM_Y + (INPUT_DIM_Y - 1) * (YSTRIDE - 1);
+
+#endif

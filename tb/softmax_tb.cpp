@@ -1,5 +1,5 @@
 /******************************************************************************
- *  Copyright (c) 2022, Xilinx, Inc.
+ *  Copyright (c) 2023, Xilinx, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -28,27 +28,36 @@
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************
- * @brief	Top-level for MaxNorm layer test.
+ * @brief	Testbench for SoftMax layer.
  * @author	Thomas B. Preusser <thomas.preusser@amd.com>
  *******************************************************************************/
-#include "normalize.hpp"
-#include "max_norm_top.hpp"
+#include "softmax_top.hpp"
 
+#include <iostream>
+#include <iomanip>
+#include <random>
 
-void max_norm_top(
-	hls::stream<ap_uint<WI>>  &src,
-	hls::stream<ap_uint<WO>> (&dst)[2]
-) {
-#pragma HLS interface AXIS port=src
-#pragma HLS interface AXIS port=dst[0]
-#pragma HLS interface AXIS port=dst[1]
-#pragma HLS dataflow disable_start_propagation
-	hls::stream<ap_uint<WI>>  split[2];
-	for(unsigned  i = 0; i < FM_SIZE; i++) {
-		auto const  x = src.read();
-		split[0].write(x);
-		split[1].write(x);
+int main() {
+	hls::stream<TI>     src("src");
+	hls::stream<TI>     bypass("bypass");
+	hls::stream<float>  dst("dst");
+
+	{
+		std::default_random_engine  rnd;
+		std::uniform_int_distribution<>  dist(0, (1<<TI::width)-1);
+		for(unsigned  i = 0; i < FM_SIZE; i++) {
+			TI const  x = dist(rnd);
+			src   .write(x);
+			bypass.write(x);
+		}
 	}
-	max_norm<FM_SIZE>(split[0], dst[0], SCALE0);
-	max_norm<FM_SIZE>(split[1], dst[1], SCALE1);
+
+	softmax_top(src, dst);
+	for(unsigned  i = 0; i < FM_SIZE; i++) {
+		TI    const  x = bypass.read();
+		float const  y = dst.read();
+		std::cout << std::setw(3) << x << " -> " << y << std::endl;
+	}
+	std::cout << "--------------\n" << std::endl;
+
 }
