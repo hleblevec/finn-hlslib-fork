@@ -1,5 +1,5 @@
 /******************************************************************************
- *  Copyright (c) 2022, Xilinx, Inc.
+ *  Copyright (c) 2023, Advanced Micro Devices, Inc.
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,35 @@
  *  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *******************************************************************************
- * @brief	Top-level for MaxNorm layer test.
- * @author	Thomas B. Preusser <thomas.preusser@amd.com>
- *******************************************************************************/
-#include "normalize.hpp"
-#include "max_norm_top.hpp"
+ *
+ ******************************************************************************/
 
+#ifndef DECONV_CONF_H
+#define DECONV_CONF_H
 
-void max_norm_top(
-	hls::stream<ap_uint<WI>>  &src,
-	hls::stream<ap_uint<WO>> (&dst)[2]
-) {
-#pragma HLS interface AXIS port=src
-#pragma HLS interface AXIS port=dst[0]
-#pragma HLS interface AXIS port=dst[1]
-#pragma HLS dataflow disable_start_propagation
-	hls::stream<ap_uint<WI>>  split[2];
-	for(unsigned  i = 0; i < FM_SIZE; i++) {
-		auto const  x = src.read();
-		split[0].write(x);
-		split[1].write(x);
-	}
-	max_norm<FM_SIZE>(split[0], dst[0], SCALE0);
-	max_norm<FM_SIZE>(split[1], dst[1], SCALE1);
-}
+constexpr unsigned  IFDim1 = 4;
+constexpr unsigned  IFMCh1 = 1;
+constexpr unsigned  OFDim1 = 7;
+constexpr unsigned  OFMCh1 = 1;
+constexpr unsigned  Kernel1 = 4;
+constexpr unsigned  Stride1 = 3;
+constexpr unsigned  Padding1 = 3;
+
+constexpr unsigned  FMPadODim1 = 10;
+constexpr unsigned  FMPadStride1 = 3;
+constexpr unsigned  FMPadSIMD1 = 1;
+
+constexpr unsigned  ConvKernel1 = 4;
+constexpr unsigned  ConvIFMCh1 = 1;
+constexpr unsigned  ConvIFMDim1 = 10;
+constexpr unsigned  ConvOFMCh1 = 1;
+constexpr unsigned  ConvOFMDim1 = 7;
+constexpr unsigned  ConvStride1 = 1;
+constexpr unsigned  ConvSIMD1 = 1;
+constexpr unsigned  ConvPE1 = 1;
+
+constexpr unsigned  IPrecision = 6;
+constexpr unsigned  OPrecision = 16;
+constexpr unsigned  WPrecision = 5;
+
+#endif

@@ -28,27 +28,18 @@
  *  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  *  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************
- * @brief	Top-level for MaxNorm layer test.
  * @author	Thomas B. Preusser <thomas.preusser@amd.com>
  *******************************************************************************/
 #include "normalize.hpp"
-#include "max_norm_top.hpp"
+#include "softmax_top.hpp"
 
 
-void max_norm_top(
-	hls::stream<ap_uint<WI>>  &src,
-	hls::stream<ap_uint<WO>> (&dst)[2]
+void softmax_top(
+	hls::stream<TI>    &src,
+	hls::stream<float> &dst
 ) {
 #pragma HLS interface AXIS port=src
-#pragma HLS interface AXIS port=dst[0]
-#pragma HLS interface AXIS port=dst[1]
+#pragma HLS interface AXIS port=dst
 #pragma HLS dataflow disable_start_propagation
-	hls::stream<ap_uint<WI>>  split[2];
-	for(unsigned  i = 0; i < FM_SIZE; i++) {
-		auto const  x = src.read();
-		split[0].write(x);
-		split[1].write(x);
-	}
-	max_norm<FM_SIZE>(split[0], dst[0], SCALE0);
-	max_norm<FM_SIZE>(split[1], dst[1], SCALE1);
+	softmax<FM_SIZE>(src, dst);
 }
